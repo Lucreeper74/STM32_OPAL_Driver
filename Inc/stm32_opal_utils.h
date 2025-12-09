@@ -5,7 +5,11 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#include <main.h>
+#ifdef STM32F3xx
+#include <stm32f3xx_hal.h>
+#elif STM32L0xx
+#include <stm32l0xx_hal.h>
+#endif
 
 /*
 *   PAM4 voltage levels definition (For 12 bits DAC)
