@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <stm32l0xx_hal.h>
+
+#include <main.h>
 
 /*
 *   PAM4 voltage levels definition (For 12 bits DAC)
