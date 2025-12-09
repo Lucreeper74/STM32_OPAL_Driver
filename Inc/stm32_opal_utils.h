@@ -5,9 +5,9 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#ifdef STM32F3xx
+#if defined(STM32F3)
 #include <stm32f3xx_hal.h>
-#elif STM32L0xx
+#elif defined(STM32L0)
 #include <stm32l0xx_hal.h>
 #endif
 

@@ -3,7 +3,6 @@
 
 #include "stm32_opal_utils.h"
 #include "stm32_opal_frame.h"
-#include "stm32l0xx_hal_tim.h"
 
 /*
 *   Encoding OPAL_Frame to PAM4 Symbols (+ Reset buffers and compute CRC16)
