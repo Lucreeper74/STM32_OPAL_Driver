@@ -10,18 +10,13 @@
 OPAL_Status OPAL_Emitter_Encode(OPAL_Frame* frame);
 
 /*
-*   Send the frame by enabling the timer
+*   Send the frame by enabling the timer and DAC with DMA
 */
-OPAL_Status OPAL_Emitter_Send_Frame(TIM_HandleTypeDef* htim);
+OPAL_Status OPAL_Emitter_Send_Frame(TIM_HandleTypeDef* htim, DAC_HandleTypeDef* hdac);
 
 /*
-*   Drive the DAC to send PAM4 symbol levels
+*   Callback to handle interruption from DMA at the end of the frame transmission
 */
-OPAL_Status OPAL_Emitter_Send_Symbol(DAC_HandleTypeDef* hdac, OPAL_PAM4_symbol symbol);
-
-/*
-*   Callback to handle interruption from TIMER for frame transmission
-*/
-void OPAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim, DAC_HandleTypeDef* hdac);
+void OPAL_Transmission_Finished_Callback(TIM_HandleTypeDef* htim, DAC_HandleTypeDef* hdac);
 
 #endif // __STM32_OPAL_EMITTER_H__

@@ -5,11 +5,12 @@
 #include <string.h>
 
 // Definition of known frame Sequences
-#define OPAL_FRAME_PREAMBLE     0xCCCC // => 11 00 11 00 11 00 11 00 - 2 Bytes
-#define OPAL_FRAME_START_BYTE   0x1B   // => 00 01 10 11 - 1 Byte
+#define OPAL_FRAME_PREAMBLE     0xCCCC  // => 11 00 11 00 11 00 11 00 - 2 Bytes
+#define OPAL_FRAME_START_BYTE   0x1B    // => 00 01 10 11 - 1 Byte
+#define OPAL_FRAME_PAYLOAD_SIZE 4       // In Bytes
 
-#define OPAL_FRAME_PAYLOAD_SIZE 4  // In Bytes
-#define OPAL_FRAME_SIZE (2 + 1 + 1 + OPAL_FRAME_PAYLOAD_SIZE + 2) // In Bytes
+#define OPAL_FRAME_SIZE (2 + 1 + 1 + OPAL_FRAME_PAYLOAD_SIZE + 2)        // In Bytes
+#define OPAL_FRAME_BUFFER_SIZE (OPAL_FRAME_SIZE*OPAL_SYMBOLS_PER_BYTE+2) // +2 to cycle the last symbol
 
 /*
 *   Represent the frame structure
