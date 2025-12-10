@@ -22,7 +22,7 @@
 #define OPAL_SYMBOLS_PER_BYTE 4 // Each symbol is 2 bits so 4 symbols/byte
 
 #define OPAL_CRC16_DEFAULT   0xFFFF // Default value of the CRC16
-#define OPAL_CRC16_GENERATOR 0x8005 // The polynomial generator used for CRC16 
+#define OPAL_CRC16_GENERATOR 0x8005 // The polynomial generator used for CRC16
 
 /*
 *   PAM4 Binary levels definition
@@ -55,9 +55,9 @@ static inline OPAL_PAM4_symbol OPAL_bits_to_pam4(uint8_t bits) {
 }
 
 static inline uint8_t OPAL_pam4_to_byte(const OPAL_PAM4_symbol symbols[4]) {
-    return OPAL_pam4_to_bits(symbols[0] << 6) |
-           OPAL_pam4_to_bits(symbols[1] << 4) |
-           OPAL_pam4_to_bits(symbols[2] << 2) |
+    return OPAL_pam4_to_bits(symbols[0]) << 6 |
+           OPAL_pam4_to_bits(symbols[1]) << 4 |
+           OPAL_pam4_to_bits(symbols[2]) << 2 |
            OPAL_pam4_to_bits(symbols[3]);
 }
 
