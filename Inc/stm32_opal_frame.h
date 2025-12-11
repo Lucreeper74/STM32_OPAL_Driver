@@ -9,11 +9,13 @@
 #define OPAL_FRAME_START_BYTE   0x1B    // => 00 01 10 11 - 1 Byte
 #define OPAL_FRAME_PAYLOAD_SIZE 4       // In Bytes
 
-#define OPAL_FRAME_SIZE (2 + 1 + 1 + OPAL_FRAME_PAYLOAD_SIZE + 2)        // In Bytes
-#define OPAL_FRAME_BUFFER_SIZE (OPAL_FRAME_SIZE*OPAL_SYMBOLS_PER_BYTE+2) // +2 to cycle the last symbol
+#define OPAL_FRAME_SIZE (2 + 1 + 1 + OPAL_FRAME_PAYLOAD_SIZE + 2)       // In Bytes
+#define OPAL_FRAME_BUFFER_SIZE (OPAL_FRAME_SIZE*OPAL_SYMBOLS_PER_BYTE)  // In Symbols/Samples
+
+#define OPAL_FRAME_SOF_INDEX (sizeof(uint16_t) * OPAL_SYMBOLS_PER_BYTE) // Index of Start of Frame in the frame buffer
 
 /*
-*   Represent the frame structure
+*   Represent the structure of a Frame transmitted via OPAL protocol
 */
 typedef struct {
     uint16_t Preamble;     /* !< Init the frame (Known sequence) */
@@ -46,11 +48,16 @@ typedef enum {
 /*
 *   Compute the CRC16 for an OPAL_Frame
 */
-uint16_t OPAL_Compute_CRC16(const OPAL_Frame* frame);
+uint16_t OPAL_Frame_Compute_CRC16(const OPAL_Frame* frame);
 
 /*
 *   Conversion between OPAL_Frame struct to a bytes array (in Big-endians)
 */
-void OPAL_Frame_Byte_Conversion(const OPAL_Frame* frame, uint8_t* frame_bytes);
+void OPAL_Frame_Bytes_Conversion(const OPAL_Frame* frame, uint8_t* frame_bytes);
+
+/*
+*   Conversion between bytes array to OPAL_Frame struct (in Big-endians)
+*/
+void OPAL_Frame_Symbols_Conversion(const uint8_t* frame_bytes, OPAL_Frame* frame);
 
 #endif // __STM32_OPAL_FRAME_H__
