@@ -1,10 +1,14 @@
 #include "stm32_opal_emitter.h"
 
-static volatile OPAL_Emitter_Status emitter_status = OPAL_EMITTER_IDLE; // Default state idling (Volatile for ITR access)
+OPAL_Emitter_Handle htx;
 
-static uint16_t dac_buffer[OPAL_FRAME_BUFFER_SIZE+2] = {}; // +2 to cycle the TIM for the last symbol
+void OPAL_Emitter_Init(DAC_HandleTypeDef* hdac, TIM_HandleTypeDef* htim) {
+    htx.DAC_Handle      = hdac;
+    htx.TIM_Handle      = htim;
+    htx.Status          = OPAL_EMITTER_IDLE;
+}
 
-OPAL_Status OPAL_Emitter_Encode(OPAL_Frame* frame) {
+OPAL_Status OPAL_Emitter_Encode(OPAL_Emitter_Handle* htx, OPAL_Frame* frame) {
     if (frame == NULL)
         return OPAL_ERROR_NULL_PTR;
 
@@ -23,34 +27,34 @@ OPAL_Status OPAL_Emitter_Encode(OPAL_Frame* frame) {
 
     // Load DAC buffer with voltage levels
     for (size_t i = 0; i < OPAL_FRAME_BUFFER_SIZE; i++)
-        dac_buffer[i] = OPAL_symbol_to_voltage(frame_symbols[i]);
+        htx->DAC_buffer[i] = OPAL_symbol_to_voltage(frame_symbols[i]);
 
     // Update emitter status
-    emitter_status = OPAL_EMITTER_IDLE;
+    htx->Status = OPAL_EMITTER_IDLE;
     
     return OPAL_SUCCESS;
 }
 
-OPAL_Status OPAL_Emitter_Send_Frame(TIM_HandleTypeDef* htim, DAC_HandleTypeDef* hdac) {
+OPAL_Status OPAL_Emitter_Send_Frame(OPAL_Emitter_Handle* htx) {
     // Load first value to handle undefined state at start
-    HAL_DAC_SetValue(hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 0x000);
+    HAL_DAC_SetValue(htx->DAC_Handle, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 0x000);
 
-    if (HAL_TIM_Base_Start(htim) != HAL_OK)
+    if (HAL_TIM_Base_Start(htx->TIM_Handle) != HAL_OK)
         return OPAL_TIM_ERROR;
 
-    if (HAL_DAC_Start_DMA(hdac, DAC_CHANNEL_1, (uint32_t*)dac_buffer, OPAL_FRAME_BUFFER_SIZE, DAC_ALIGN_12B_R) != HAL_OK)
+    if (HAL_DAC_Start_DMA(htx->DAC_Handle, DAC_CHANNEL_1, (uint32_t*)htx->DAC_buffer, OPAL_FRAME_BUFFER_SIZE, DAC_ALIGN_12B_R) != HAL_OK)
         return OPAL_DAC_ERROR;
 
-    emitter_status = OPAL_EMITTER_BUSY;
+    htx->Status = OPAL_EMITTER_BUSY;
 
     return OPAL_SUCCESS;
 }
 
-void OPAL_Emitter_Finished_Callback(TIM_HandleTypeDef* htim, DAC_HandleTypeDef* hdac) {
-    if (emitter_status == OPAL_EMITTER_BUSY) {
-        HAL_TIM_Base_Stop(htim);
-        HAL_DAC_Stop_DMA(hdac, DAC_CHANNEL_1);
-        emitter_status = OPAL_EMITTER_IDLE;
+void OPAL_Emitter_Finished_Callback(OPAL_Emitter_Handle* htx) {
+    if (htx->Status == OPAL_EMITTER_BUSY) {
+        HAL_TIM_Base_Stop(htx->TIM_Handle);
+        HAL_DAC_Stop_DMA(htx->DAC_Handle, DAC_CHANNEL_1);
+        htx->Status = OPAL_EMITTER_IDLE;
         //HAL_DAC_SetValue(hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 0x000); // Reset DAC to 0V
     }
 }
