@@ -26,6 +26,8 @@
 #define OPAL_CRC16_DEFAULT   0xFFFF // Default value of the CRC16
 #define OPAL_CRC16_GENERATOR 0x8005 // The polynomial generator used for CRC16
 
+#define OPAL_TRANSMISSION_FREQ 10000 // In Hz
+
 /*
 *   PAM4 Binary levels definition
 */
@@ -139,5 +141,7 @@ static inline OPAL_PAM4_symbol OPAL_voltage_large_threshold(uint16_t voltage) {
 *   Get the index of the Most Significant Bit in a 16 bits variable
 */
 size_t OPAL_msb_index(uint16_t data);
+
+uint32_t OPAL_GetAPB1_TimerClockFreq();
 
 #endif // __STM32_OPAL_UTILS_H__

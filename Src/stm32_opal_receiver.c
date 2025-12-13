@@ -9,6 +9,10 @@ void OPAL_Receiver_Init(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* htim) {
     hrx.HLF_CPLT_flag   = false;
     hrx.SKIP_NEXT_flag  = false;
     hrx.DTC_idx         = 0;
+
+    // Setup TIM Frequency
+    hrx.TIM_Handle->Instance->ARR = 1;
+    hrx.TIM_Handle->Instance->PSC = (uint32_t) ((OPAL_GetAPB1_TimerClockFreq() / OPAL_SAMPLING_FREQ) - 1);
 }
 
 OPAL_Status OPAL_Receiver_Start_Sniffing(OPAL_Receiver_Handle* hrx) {

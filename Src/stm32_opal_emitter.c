@@ -6,6 +6,10 @@ void OPAL_Emitter_Init(DAC_HandleTypeDef* hdac, TIM_HandleTypeDef* htim) {
     htx.DAC_Handle      = hdac;
     htx.TIM_Handle      = htim;
     htx.Status          = OPAL_EMITTER_IDLE;
+
+    // Setup TIM Frequency
+    htx.TIM_Handle->Instance->ARR = 1;
+    htx.TIM_Handle->Instance->PSC = (uint32_t) ((OPAL_GetAPB1_TimerClockFreq() / OPAL_TRANSMISSION_FREQ) - 1);
 }
 
 OPAL_Status OPAL_Emitter_Encode(OPAL_Emitter_Handle* htx, OPAL_Frame* frame) {
