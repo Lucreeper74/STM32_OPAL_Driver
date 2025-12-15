@@ -12,7 +12,7 @@
 #define OPAL_FRAME_SIZE (2 + 1 + 1 + OPAL_FRAME_PAYLOAD_SIZE + 2)       // In Bytes
 #define OPAL_FRAME_BUFFER_SIZE (OPAL_FRAME_SIZE*OPAL_SYMBOLS_PER_BYTE)  // In Symbols/Samples
 
-#define OPAL_FRAME_SOF_INDEX (sizeof(uint16_t) * OPAL_SYMBOLS_PER_BYTE) // Index of Start of Frame in the frame buffer
+#define OPAL_FRAME_PREAMBLE_SIZE (sizeof(uint16_t) * OPAL_SYMBOLS_PER_BYTE) // Size of the Preamble in symbols (also Index of Start of Frame in the frame buffer)
 
 /*
 *   Represent the structure of a Frame transmitted via OPAL protocol
