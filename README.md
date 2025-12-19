@@ -23,7 +23,7 @@ Copyright (c) 2025 Luc_Creeper74 - STM32_OPAL_Driver is under the Apache 2.0 Lic
 Make sure to install the latest version of `git`: <br>
 _See here for Git installation : https://git-scm.com/book/en/v2/Getting-Started-Installing-Git_ 
 
-In the Driver directory of a STM32 project, get the latest version of this repository using `git`: <br>
+In the `Driver` directory of a STM32 project, get the latest version of this repository using `git`: <br>
 
 ```bash
 $ git clone https://github.com/Lucreeper74/STM32_OPAL_Driver
