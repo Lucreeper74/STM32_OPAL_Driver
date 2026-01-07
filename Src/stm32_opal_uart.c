@@ -11,23 +11,26 @@ void OPAL_UART_RX_Init(UART_HandleTypeDef* huart) {
 }
 
 OPAL_UART_Command OPAL_UART_RX_ParseCmd(OPAL_UART_RX_Handle* huart_rx) {
-    OPAL_UART_Command cmd;
+    OPAL_UART_Command cmd = {};
 
-    for (int i = 0; i < (sizeof(cmdType_map)/sizeof(OPAL_CommandType_Map)); i++) {
-        if (strncmpi((const char*) huart_rx->rx_buffer, cmdType_map[i].name, strlen(cmdType_map[i].name)) == 0) {
-            cmd.commandType = cmdType_map[i].type;
-            break;
-        }
-        cmd.commandType = OPAL_UNKNOWN_COMMAND;
-    } 
-
-    // Check for parameter
+    // Check for space to separate command and parameter
     const char *space = strchr((const char*) huart_rx->rx_buffer, ' ');
-    if (space != NULL)
-    {
-        strncpy((char*) cmd.param, space + 1, OPAL_UART_PARAM_SIZE - 1);
-        cmd.param[OPAL_UART_PARAM_SIZE - 1] = '\0';
+
+    if (space != NULL) {
+        // Get Command part before space
+        size_t cmd_length = space - (const char*) huart_rx->rx_buffer;
+        strncpy(cmd.command, (const char*) huart_rx->rx_buffer, cmd_length);
+        cmd.command[cmd_length] = '\0';
+
+        // Get parameter part after space
+        strncpy((char*) cmd.param, space + 1, OPAL_UART_CMD_FIELDS_SIZE - 1);
+        cmd.param[OPAL_UART_CMD_FIELDS_SIZE - 1] = '\0';
         cmd.has_param = true;
+        
+    } else {
+        // No parameter, copy entire buffer as command
+        strncpy(cmd.command, (const char*) huart_rx->rx_buffer, OPAL_UART_CMD_FIELDS_SIZE - 1);
+        cmd.command[OPAL_UART_CMD_FIELDS_SIZE - 1] = '\0';
     }
 
     // Clear command ready flag after processing

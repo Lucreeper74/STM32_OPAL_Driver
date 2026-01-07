@@ -5,49 +5,19 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <sys/_intsup.h>
 
 #define OPAL_UART_RX_BUFFER_SIZE 64  /* !< Size of the UART RX buffer */
-#define OPAL_UART_PARAM_SIZE 32  /* !< Size of the UART parameter buffer */
-
-/*
-*   Definition of OPAL UART Commands enumeration
-*/
-typedef enum {
-    OPAL_TEST1_COMMAND = 0x0,
-    OPAL_TEST2_COMMAND,
-    OPAL_TEST_SETCOMMAND,
-    OPAL_UNKNOWN_COMMAND,
-} OPAL_UART_CommandType;
-
-/*
-*   Pair mapping command types to their string representations
-*/
-typedef struct {
-    OPAL_UART_CommandType type; /* !< Command type */
-    const char*           name; /* !< Command name string */
-} OPAL_CommandType_Map;
-
-/*
-*   Array to get the string representation of a command type
-*/
-static const OPAL_CommandType_Map cmdType_map[] = {
-    { OPAL_TEST1_COMMAND,    "TEST1" },
-    { OPAL_TEST2_COMMAND,    "TEST2" },
-    { OPAL_TEST_SETCOMMAND,  "SETCOMMAND" },
-    { OPAL_UNKNOWN_COMMAND,  "UNKNOWN" },
-};
+#define OPAL_UART_CMD_FIELDS_SIZE (OPAL_UART_RX_BUFFER_SIZE / 2)  /* !< Size of the UART parameter buffer */
 
 /*
 *   Definition of OPAL UART Command structure
 */
 typedef struct {
-    OPAL_UART_CommandType commandType;   /* !< Command type */
-    uint8_t               param[OPAL_UART_PARAM_SIZE]; /* !< Command parameter */
-    bool                  has_param;     /* !< Flag indicating if parameter is present */
+    char    command[OPAL_UART_CMD_FIELDS_SIZE]; /* !< Command type */
+    char    param[OPAL_UART_CMD_FIELDS_SIZE];   /* !< Command parameter */
+    bool    has_param;     /* !< Flag indicating if parameter is present */
 } OPAL_UART_Command;
-
-
-
 
 /*
 *   Definition of OPAL UART Receiver handle structure
