@@ -54,7 +54,10 @@ OPAL_Status OPAL_Emitter_Send_Frame(OPAL_Emitter_Handle* htx) {
     return OPAL_SUCCESS;
 }
 
-void OPAL_Emitter_Finished_Callback(OPAL_Emitter_Handle* htx) {
+void OPAL_Emitter_Finished_Callback(DAC_HandleTypeDef* hdac, OPAL_Emitter_Handle* htx) {
+    if (hdac->Instance != htx->DAC_Handle->Instance)
+        return;
+
     if (htx->Status == OPAL_EMITTER_BUSY) {
         HAL_TIM_Base_Stop(htx->TIM_Handle);
         HAL_DAC_Stop_DMA(htx->DAC_Handle, DAC_CHANNEL_1);

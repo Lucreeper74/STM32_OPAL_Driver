@@ -39,6 +39,6 @@ OPAL_Status OPAL_Emitter_Send_Frame(OPAL_Emitter_Handle* htx);
 /*
 *   Callback to handle interruption from DMA at the end of the frame transmission
 */
-void OPAL_Emitter_Finished_Callback(OPAL_Emitter_Handle* htx);
+void OPAL_Emitter_Finished_Callback(DAC_HandleTypeDef* hdac, OPAL_Emitter_Handle* htx);
 
 #endif // __STM32_OPAL_EMITTER_H__
