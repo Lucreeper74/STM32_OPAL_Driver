@@ -46,6 +46,17 @@ typedef enum {
 } OPAL_DataType;
 
 /*
+*   Definition of an OPAL frame for tests & debugging purposes
+*/
+static const OPAL_Frame OPAL_TestFrame = {
+        .Preamble     = OPAL_FRAME_PREAMBLE,
+        .StartFrame   = OPAL_FRAME_START_BYTE,
+        .DataType     = TYPE_INT,
+        .Data         = {0xAC, 0xF7, 0x89, 0x7B}
+};
+
+
+/*
 *   Compute the CRC16 for an OPAL_Frame
 */
 uint16_t OPAL_Frame_Compute_CRC16(const OPAL_Frame* frame);
