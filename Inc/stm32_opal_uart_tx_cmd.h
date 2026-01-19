@@ -13,6 +13,7 @@
 */
 typedef enum {
     SEND_TEST_FRAME = 0x0,
+    VERIFY,
     UNKNOWN_COMMAND,
 } OPAL_UART_TX_CommandType;
 
@@ -29,6 +30,7 @@ typedef struct {
 */
 static const OPAL_UART_TX_CommandType_Map cmdType_map[] = {
     { SEND_TEST_FRAME, "SEND_TEST_FRAME" },
+    { VERIFY, "VERIFY"}
 };
 
 /*
