@@ -34,6 +34,6 @@ static const OPAL_UART_TX_CommandType_Map cmdType_map[] = {
 /*
 *  Process OPAL TX unit commands received via UART
 */
-void OPAL_TX_UART_processCommand(const OPAL_UART_Command *cmd, OPAL_Emitter_Handle* htx);
+void OPAL_TX_UART_processCommand(const UART_Command* cmd, OPAL_Emitter_Handle* htx);
 
 #endif // __OPAL_SERIAL_TX_CMD_H__

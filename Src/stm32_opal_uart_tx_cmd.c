@@ -4,7 +4,7 @@
 // To get param number
 // int test_num = atoi(cmd->param);
 
-void OPAL_TX_UART_processCommand(const OPAL_UART_Command *cmd, OPAL_Emitter_Handle* htx) {
+void OPAL_TX_UART_processCommand(const UART_Command* cmd, OPAL_Emitter_Handle* htx) {
     OPAL_UART_TX_CommandType cmdType = UNKNOWN_COMMAND;
 
     // Find command type from string
@@ -20,6 +20,15 @@ void OPAL_TX_UART_processCommand(const OPAL_UART_Command *cmd, OPAL_Emitter_Hand
         case SEND_TEST_FRAME: {
             // Handle SEND_TEST_FRAME command
             printf("Sending test frame...\r\n");
+            OPAL_Frame testFrame = OPAL_TestFrame;
+            if (OPAL_Emitter_Encode(htx, &testFrame) == OPAL_SUCCESS) {
+                if (OPAL_Emitter_Send_Frame(htx) == OPAL_SUCCESS) {
+                printf("Test frame sent successfully!\r\n");
+                } else
+                    printf("[!] Failed to send the test frame...\r\n");
+            } else
+                printf("[!] Failed to encode the test frame...\r\n");
+            break;
         }
 
         default:
