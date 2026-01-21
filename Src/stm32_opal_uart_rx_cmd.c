@@ -19,7 +19,7 @@ void OPAL_RX_UART_processCommand(const UART_Command* cmd, OPAL_Receiver_Handle* 
     switch (cmdType) {
         case VERIFY: {
             // Handle VERIFY command
-            printf("Communication verified successfully!\r\n");
+            printf("Communication with Receiver Unit verified successfully!\r\n");
             break;
         }
 

@@ -33,7 +33,7 @@ void OPAL_TX_UART_processCommand(const UART_Command* cmd, OPAL_Emitter_Handle* h
 
         case VERIFY: {
             // Handle VERIFY command
-            printf("Communication verified successfully!\r\n");
+            printf("Communication with Emitter Unit verified successfully!\r\n");
             break;
         }
 
