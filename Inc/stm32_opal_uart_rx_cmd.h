@@ -2,7 +2,7 @@
 #define __OPAL_SERIAL_RX_CMD_H__
 
 #include "stm32_opal_frame.h"
-#include "stm32_opal_emitter.h"
+#include "stm32_opal_receiver.h"
 #include "stm32_uart_rx.h"
 
 #include <stdlib.h>
@@ -34,6 +34,6 @@ static const OPAL_UART_RX_CommandType_Map cmdType_map[] = {
 /*
 *  Process OPAL RX unit commands received via UART
 */
-void OPAL_RX_UART_processCommand(const UART_Command* cmd, OPAL_Emitter_Handle* htx);
+void OPAL_RX_UART_processCommand(const UART_Command* cmd, OPAL_Receiver_Handle* hrx);
 
 #endif // __OPAL_SERIAL_RX_CMD_H__

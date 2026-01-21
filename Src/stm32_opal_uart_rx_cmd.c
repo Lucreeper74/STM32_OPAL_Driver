@@ -4,7 +4,7 @@
 // To get param number
 // int test_num = atoi(cmd->param);
 
-void OPAL_RX_UART_processCommand(const UART_Command* cmd, OPAL_Emitter_Handle* htx) {
+void OPAL_RX_UART_processCommand(const UART_Command* cmd, OPAL_Receiver_Handle* hrx) {
     OPAL_UART_RX_CommandType cmdType = UNKNOWN_COMMAND;
 
     // Find command type from string
