@@ -1,4 +1,5 @@
 #include "stm32_opal_emitter.h"
+#include "stm32_opal_frame.h"
 
 OPAL_Emitter_Handle htx;
 
@@ -46,7 +47,7 @@ OPAL_Status OPAL_Emitter_Send_Frame(OPAL_Emitter_Handle* htx) {
     if (HAL_TIM_Base_Start(htx->TIM_Handle) != HAL_OK)
         return OPAL_TIM_ERROR;
 
-    if (HAL_DAC_Start_DMA(htx->DAC_Handle, DAC_CHANNEL_1, (uint32_t*)htx->DAC_buffer, OPAL_FRAME_BUFFER_SIZE+2, DAC_ALIGN_12B_R) != HAL_OK)
+    if (HAL_DAC_Start_DMA(htx->DAC_Handle, DAC_CHANNEL_1, (uint32_t*)htx->DAC_buffer, OPAL_FRAME_SAMPLES_SIZE+2, DAC_ALIGN_12B_R) != HAL_OK)
         return OPAL_DAC_ERROR;
 
     htx->Status = OPAL_EMITTER_BUSY;
