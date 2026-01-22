@@ -1,6 +1,4 @@
 #include "stm32_opal_frame.h"
-#include <stddef.h>
-
 uint16_t OPAL_Frame_Compute_CRC16(const OPAL_Frame* frame) {
     uint8_t gen_MSB_index = OPAL_msb_index(OPAL_CRC16_GENERATOR);
     uint16_t CRC16_result = OPAL_CRC16_DEFAULT;
