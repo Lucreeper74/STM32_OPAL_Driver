@@ -1,10 +1,11 @@
 #include "stm32_opal_frame.h"
+#include <stddef.h>
 
 uint16_t OPAL_Frame_Compute_CRC16(const OPAL_Frame* frame) {
     uint8_t gen_MSB_index = OPAL_msb_index(OPAL_CRC16_GENERATOR);
     uint16_t CRC16_result = OPAL_CRC16_DEFAULT;
 
-    size_t data_length = OPAL_FRAME_SIZE-2;
+    size_t data_length = OPAL_FRAME_SIZE-2; // -2 = Exclude CRC16 field
 
     uint8_t data[data_length] = {};
     OPAL_Frame_Bytes_Conversion(frame, data);
@@ -81,4 +82,26 @@ void OPAL_Frame_Symbols_Conversion(const uint8_t* frame_bytes, OPAL_Frame* frame
 
     // CRC16
     frame->CRC16 = (frame_bytes[offset] << 8) | frame_bytes[offset + 1];
+}
+
+size_t OPAL_Frame_getHammingDistance(const OPAL_Frame* frame1, const OPAL_Frame* frame2) {
+    size_t distance = 0;
+
+    uint8_t bytes1[OPAL_FRAME_SIZE] = {};
+    uint8_t bytes2[OPAL_FRAME_SIZE] = {};
+
+    OPAL_Frame_Bytes_Conversion(frame1, bytes1);
+    OPAL_Frame_Bytes_Conversion(frame2, bytes2);
+
+    for (size_t i = 0; i < OPAL_FRAME_SIZE; i++) {
+        uint8_t diff = bytes1[i] ^ bytes2[i]; // XOR to find differing bits
+
+        // Count set bits in diff (Hamming weight)
+        while (diff) {
+            distance += diff & 1;
+            diff >>= 1;
+        }
+    }
+
+    return distance;
 }

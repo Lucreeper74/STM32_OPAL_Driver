@@ -9,8 +9,8 @@
 #define OPAL_FRAME_START_BYTE   0x1B    // => 00 01 10 11 - 1 Byte
 #define OPAL_FRAME_PAYLOAD_SIZE 4       // In Bytes
 
-#define OPAL_FRAME_SIZE (2 + 1 + 1 + OPAL_FRAME_PAYLOAD_SIZE + 2)       // In Bytes
-#define OPAL_FRAME_BUFFER_SIZE (OPAL_FRAME_SIZE*OPAL_SYMBOLS_PER_BYTE)  // In Symbols/Samples
+#define OPAL_FRAME_SIZE (2 + 1 + 1 + OPAL_FRAME_PAYLOAD_SIZE + 2) // In Bytes
+#define OPAL_FRAME_SAMPLES_SIZE (OPAL_FRAME_SIZE * OPAL_SYMBOLS_PER_BYTE) // In Symbols/Samples
 
 #define OPAL_FRAME_PREAMBLE_SIZE (sizeof(uint16_t) * OPAL_SYMBOLS_PER_BYTE) // Size of the Preamble in symbols (also Index of Start of Frame in the frame buffer)
 
@@ -49,10 +49,11 @@ typedef enum {
 *   Definition of an OPAL frame for tests & debugging purposes
 */
 static const OPAL_Frame OPAL_TestFrame = {
-        .Preamble     = OPAL_FRAME_PREAMBLE,
-        .StartFrame   = OPAL_FRAME_START_BYTE,
-        .DataType     = TYPE_INT,
-        .Data         = {0xAC, 0xF7, 0x89, 0x7B}
+        .Preamble     = OPAL_FRAME_PREAMBLE,                     // 0xCCCC = 52428
+        .StartFrame   = OPAL_FRAME_START_BYTE,                   // 0x1B = 27
+        .DataType     = TYPE_INT,                                // 0x02 = 2
+        .Data         = {0xAC, 0xF7, 0x89, 0x7B} // 172, 247, 137, 123
+        // .CRC16 will be computed dynamically
 };
 
 
@@ -70,5 +71,10 @@ void OPAL_Frame_Bytes_Conversion(const OPAL_Frame* frame, uint8_t* frame_bytes);
 *   Conversion between bytes array to OPAL_Frame struct (in Big-endians)
 */
 void OPAL_Frame_Symbols_Conversion(const uint8_t* frame_bytes, OPAL_Frame* frame);
+
+/*
+*   Compute the Hamming Distance between two OPAL frames
+*/
+size_t OPAL_Frame_getHammingDistance(const OPAL_Frame* frame1, const OPAL_Frame* frame2);
 
 #endif // __STM32_OPAL_FRAME_H__
