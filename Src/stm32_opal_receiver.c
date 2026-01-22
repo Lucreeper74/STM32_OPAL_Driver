@@ -1,4 +1,7 @@
 #include "stm32_opal_receiver.h"
+#include "stm32_opal_frame.h"
+#include "stm32_opal_utils.h"
+#include <stddef.h>
 
 OPAL_Receiver_Handle hrx;
 
@@ -6,10 +9,10 @@ void OPAL_Receiver_Init(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* htim) {
     hrx.ADC_Handle      = hadc;
     hrx.TIM_Handle      = htim;
     hrx.Status          = OPAL_RECEIVER_IDLE;
-    hrx.Buffer_offset   = 0;
-    hrx.DTC_idx         = 0;
     hrx.HLF_CPLT_flag   = false;
     hrx.SKIP_NEXT_flag  = false;
+    hrx.FIRST_HALF_flag = false;
+    hrx.Preamble_abs_index  = 0;
 
     // Setup TIM Frequency
     hrx.TIM_Handle->Instance->PSC = 0; // Cannot be ARR = 0, it won't trigger the ADC
@@ -23,11 +26,15 @@ OPAL_Status OPAL_Receiver_Start_Sniffing(OPAL_Receiver_Handle* hrx) {
     if (HAL_ADC_Start_DMA(hrx->ADC_Handle, (uint32_t*) hrx->DMA_ADC_buffer, OPAL_ADC_BUFFER_SIZE) != HAL_OK)
         return OPAL_ADC_ERROR;
 
+    // For safety, enable both interrupts
+    __HAL_DMA_ENABLE_IT(hrx->ADC_Handle->DMA_Handle, DMA_IT_HT);  // Half Transfer
+    __HAL_DMA_ENABLE_IT(hrx->ADC_Handle->DMA_Handle, DMA_IT_TC);  // Transfer Complete
+
     if (HAL_TIM_Base_Start(hrx->TIM_Handle) != HAL_OK)
         return OPAL_TIM_ERROR;
     
+    hrx->Preamble_abs_index = 0; // Make sure preamble index is reset
     hrx->Status = OPAL_RECEIVER_SNIFFING;
-    hrx->DTC_idx = 0;
     return OPAL_SUCCESS;
 }
 
@@ -58,7 +65,7 @@ OPAL_Status OPAL_Receiver_Decode(OPAL_Receiver_Handle* hrx, OPAL_Frame* frame) {
     uint8_t frame_bytes[OPAL_FRAME_SIZE] = {};
     size_t symbol_index = 0;
     for (size_t i = 0; i < OPAL_FRAME_SIZE; i++) {
-        OPAL_PAM4_symbol s0 = OPAL_voltage_to_symbol(hrx->Frame_buffer[symbol_index + 0], &thresholds);
+        OPAL_PAM4_symbol s0 = OPAL_voltage_to_symbol(hrx->Frame_buffer[symbol_index], &thresholds);
         OPAL_PAM4_symbol s1 = OPAL_voltage_to_symbol(hrx->Frame_buffer[symbol_index + 1], &thresholds);
         OPAL_PAM4_symbol s2 = OPAL_voltage_to_symbol(hrx->Frame_buffer[symbol_index + 2], &thresholds);
         OPAL_PAM4_symbol s3 = OPAL_voltage_to_symbol(hrx->Frame_buffer[symbol_index + 3], &thresholds);
@@ -76,7 +83,6 @@ OPAL_Status OPAL_Receiver_Decode(OPAL_Receiver_Handle* hrx, OPAL_Frame* frame) {
     if (frame->CRC16 != OPAL_Frame_Compute_CRC16(frame))
         return OPAL_ERROR_CRC_MISMATCH;
 
-    //OPAL_Receiver_Start_Sniffing(hrx); // Return to sniffing mode
     return OPAL_SUCCESS;
 }
 
@@ -89,13 +95,17 @@ bool OPAL_Receiver_Detect_Preamble(OPAL_Receiver_Handle* hrx, uint16_t offset) {
     int32_t best_correlation = INT32_MIN;
     size_t best_index = 0;
 
+    size_t max_index = OPAL_ADC_BUFFER_HALF_SIZE - OPAL_FRAME_PREAMBLE_SIZE * OPAL_OVERSAMPLING_FACTOR;
+
     // Search for preamble position in the DMA buffer (Sliding Window or Circulary browsing)
-    for (size_t i = 0; i < (OPAL_ADC_BUFFER_SIZE - (OPAL_FRAME_PREAMBLE_SIZE * OPAL_OVERSAMPLING_FACTOR)); i++) {
+    for (size_t i = 0; i < max_index; i++) {
+        size_t current_position = offset + i;
         int32_t correlation = 0;
 
         // Compute correlation for each buffer position (to find the preamble + optimal phase)
         for (size_t j = 0; j < OPAL_FRAME_PREAMBLE_SIZE; j++) {
-            int32_t diff = (int32_t) hrx->DMA_ADC_buffer[(offset + i + j*OPAL_OVERSAMPLING_FACTOR) % OPAL_ADC_BUFFER_SIZE] - preamble_pattern[j];
+            int16_t sample = hrx->DMA_ADC_buffer[(current_position + j * OPAL_OVERSAMPLING_FACTOR) % OPAL_ADC_BUFFER_SIZE];
+            int32_t diff = sample - preamble_pattern[j];
             correlation -= diff * diff; // Quadratique error
 
             if (correlation < best_correlation)
@@ -104,14 +114,14 @@ bool OPAL_Receiver_Detect_Preamble(OPAL_Receiver_Handle* hrx, uint16_t offset) {
 
         if (correlation > best_correlation) {
             best_correlation = correlation;
-            best_index = i;
+            best_index = current_position;
         }
     }
 
-    #define CORRELATION_THRESHOLD -5000000
+    #define CORRELATION_THRESHOLD -200000 // Empirical threshold for preamble detection
 
     if (best_correlation > CORRELATION_THRESHOLD) {
-        hrx->DTC_idx = best_index;
+        hrx->Preamble_abs_index = best_index;
         return true;
     }
 
@@ -124,10 +134,12 @@ OPAL_Status OPAL_Receiver_Process(OPAL_Receiver_Handle* hrx) {
             if (hrx->HLF_CPLT_flag) {
                 hrx->HLF_CPLT_flag = false; // Reset the half-complete flag
 
-                if (OPAL_Receiver_Detect_Preamble(hrx, hrx->Buffer_offset)) {
+                if (hrx->Preamble_abs_index != 0)
+                    hrx->Status = OPAL_RECEIVER_RECEIVING; // Preamble already found, fetch the frame
+                else if (OPAL_Receiver_Detect_Preamble(hrx, hrx->FIRST_HALF_flag ? OPAL_ADC_BUFFER_HALF_SIZE : 0)) {
                     // Preamble found in the current buffer
 
-                    if (hrx->DTC_idx >= OPAL_ADC_BUFFER_HALF_SIZE) // If the frame isn't fully contained in the current buffer
+                    if (hrx->Preamble_abs_index > OPAL_ADC_BUFFER_HALF_SIZE) // If the frame isn't fully contained in the current buffer
                         break; // Wait for the next buffer half ITR to catch the full frame
 
                     hrx->Status = OPAL_RECEIVER_RECEIVING; // Update status to receiving
@@ -137,12 +149,13 @@ OPAL_Status OPAL_Receiver_Process(OPAL_Receiver_Handle* hrx) {
         }
         case OPAL_RECEIVER_RECEIVING: {
                 // Save the current buffer data starting from the preamble
-                for (size_t i = 0; i < OPAL_FRAME_BUFFER_SIZE; i++)
-                    hrx->Frame_buffer[i] = hrx->DMA_ADC_buffer[(hrx->Buffer_offset + hrx->DTC_idx + i * OPAL_OVERSAMPLING_FACTOR) % OPAL_ADC_BUFFER_SIZE];
+                for (size_t i = 0; i < OPAL_FRAME_SAMPLES_SIZE; i++)
+                    hrx->Frame_buffer[i] = hrx->DMA_ADC_buffer[(hrx->Preamble_abs_index + i * OPAL_OVERSAMPLING_FACTOR) % OPAL_ADC_BUFFER_SIZE];
 
                 OPAL_Receiver_Stop_Sniffing(hrx); // Stop receiving data to decode the frame
 
-                hrx->SKIP_NEXT_flag = true;
+                hrx->Preamble_abs_index = 0; // Reset preamble index
+                hrx->SKIP_NEXT_flag = true; // Avoid sniffing the same frame again
                 hrx->Status = OPAL_RECEIVER_WAITING_DECODE; // Update status to waiting for decoding
             break;
         }
@@ -154,11 +167,11 @@ OPAL_Status OPAL_Receiver_Process(OPAL_Receiver_Handle* hrx) {
     return OPAL_SUCCESS;
 }
 
-void OPAL_Receiver_Buffer_Callback(OPAL_Receiver_Handle* hrx) {
+void OPAL_Receiver_Buffer_Callback(OPAL_Receiver_Handle* hrx, bool is_first_half) {
     if (hrx->SKIP_NEXT_flag)
         hrx->SKIP_NEXT_flag = false; // Skip the current half-complete DMA buffer
     else
         hrx->HLF_CPLT_flag = true; // Set half-complete flag
 
-    hrx->Buffer_offset = hrx->HLF_CPLT_flag ? (OPAL_ADC_BUFFER_SIZE / 2) : 0; // Offset of the filled half
+    hrx->FIRST_HALF_flag = is_first_half; // Update which half is ready
 }
