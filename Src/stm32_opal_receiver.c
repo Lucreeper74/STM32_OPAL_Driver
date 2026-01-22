@@ -118,7 +118,7 @@ bool OPAL_Receiver_Detect_Preamble(OPAL_Receiver_Handle* hrx, uint16_t offset) {
         }
     }
 
-    #define CORRELATION_THRESHOLD -200000 // Empirical threshold for preamble detection
+    #define CORRELATION_THRESHOLD -20000000 // Empirical threshold for preamble detection
 
     if (best_correlation > CORRELATION_THRESHOLD) {
         hrx->Preamble_abs_index = best_index;
