@@ -26,7 +26,7 @@
 #define OPAL_CRC16_DEFAULT   0xFFFF // Default value of the CRC16
 #define OPAL_CRC16_GENERATOR 0x8005 // The polynomial generator used for CRC16
 
-#define OPAL_TRANSMISSION_FREQ 5000 // In Hz
+#define OPAL_TRANSMISSION_FREQ 1000 // In Hz
 
 /*
 *   PAM4 Binary levels definition

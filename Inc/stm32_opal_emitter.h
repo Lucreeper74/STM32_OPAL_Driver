@@ -16,7 +16,7 @@ typedef struct {
     DAC_HandleTypeDef*              DAC_Handle;     /* !< Associated DAC Handle */
     TIM_HandleTypeDef*              TIM_Handle;     /* !< Associated Timer Handle */
     volatile OPAL_Emitter_Status    Status;         /* !< Emitter Status (Volatile for ITR access) */
-    volatile uint16_t               DAC_buffer[OPAL_FRAME_BUFFER_SIZE+2];  /* !< DAC DMA Buffer (+2 to cycle the TIM for the last symbol) (Volatile for ITR access) */
+    volatile uint16_t               DAC_buffer[OPAL_FRAME_SAMPLES_SIZE+2];  /* !< DAC DMA Buffer (+2 to cycle the TIM for the last symbol) (Volatile for ITR access) */
 } OPAL_Emitter_Handle;
 
 extern OPAL_Emitter_Handle htx; // Global OPAL Emitter handle

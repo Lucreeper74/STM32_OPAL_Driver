@@ -22,7 +22,7 @@ OPAL_Status OPAL_Emitter_Encode(OPAL_Emitter_Handle* htx, OPAL_Frame* frame) {
     OPAL_Frame_Bytes_Conversion(frame, frame_bytes);
 
     // Convert all frame bytes to symbols
-    OPAL_PAM4_symbol frame_symbols[OPAL_FRAME_BUFFER_SIZE] = {};
+    OPAL_PAM4_symbol frame_symbols[OPAL_FRAME_SAMPLES_SIZE] = {};
     size_t symbol_index = 0;
     for (size_t i = 0; i < OPAL_FRAME_SIZE; i++) {
         OPAL_byte_to_pam4(frame_bytes[i], &frame_symbols[symbol_index]);
@@ -30,7 +30,7 @@ OPAL_Status OPAL_Emitter_Encode(OPAL_Emitter_Handle* htx, OPAL_Frame* frame) {
     }
 
     // Load DAC buffer with voltage levels
-    for (size_t i = 0; i < OPAL_FRAME_BUFFER_SIZE; i++)
+    for (size_t i = 0; i < OPAL_FRAME_SAMPLES_SIZE; i++)
         htx->DAC_buffer[i] = OPAL_symbol_to_voltage(frame_symbols[i]);
 
     // Update emitter status
